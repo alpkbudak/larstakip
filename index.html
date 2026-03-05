@@ -2176,10 +2176,10 @@ function saveModel(){
     }
     state.modeller[idx] = {...state.modeller[idx], uretici:u, ayar:a, kasa:k, kalinlik:kl, aciklama, id:kod};
     if(pendingFotoUrl) state.modeller[idx].foto = pendingFotoUrl;
-    // Kod değiştiyse siparişler ve fiyatları güncelle
+    // Kod değiştiyse siparişler ve fiyatları güncelle + Firebase'e yaz
     if(editingModelId !== kod) {
-      state.siparisler.forEach(s=>{ if(s.modelId===editingModelId) s.modelId=kod; });
-      state.musteriler.forEach(m=>{ if(m.fiyatlar&&m.fiyatlar[editingModelId]){ m.fiyatlar[kod]=m.fiyatlar[editingModelId]; delete m.fiyatlar[editingModelId]; }});
+      state.siparisler.forEach(s=>{ if(s.modelId===editingModelId){ s.modelId=kod; fbPush('siparisler', s); } });
+      state.musteriler.forEach(m=>{ if(m.fiyatlar&&m.fiyatlar[editingModelId]){ m.fiyatlar[kod]=m.fiyatlar[editingModelId]; delete m.fiyatlar[editingModelId]; fbPush('musteriler', m); }});
     }
     // Kod değiştiyse Firebase'de eski kaydı sil
     if(editingModelId !== kod) fbRemove('modeller', editingModelId);
