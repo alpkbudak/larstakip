@@ -2181,16 +2181,20 @@ function saveModel(){
       state.siparisler.forEach(s=>{ if(s.modelId===editingModelId) s.modelId=kod; });
       state.musteriler.forEach(m=>{ if(m.fiyatlar&&m.fiyatlar[editingModelId]){ m.fiyatlar[kod]=m.fiyatlar[editingModelId]; delete m.fiyatlar[editingModelId]; }});
     }
+    // Kod değiştiyse Firebase'de eski kaydı sil
+    if(editingModelId !== kod) fbRemove('modeller', editingModelId);
+    const _updMod = state.modeller.find(m=>m.id===kod);
+    if(_updMod) fbPush('modeller', _updMod);
     showToast('✓ Model güncellendi: '+kod);
   } else {
     // Yeni model
     if(state.modeller.find(m=>m.id===kod)){showToast('⚠️ Bu model zaten var');return;}
     state.modeller.push({id:kod,uretici:u,ayar:a,kasa:k,kalinlik:kl,aciklama,foto:pendingFotoUrl||null});
+    const _newMod = state.modeller.find(m=>m.id===kod);
+    if(_newMod) fbPush('modeller', _newMod);
     showToast('✓ Model eklendi: '+kod);
   }
   saveState();
-  const _savedMod = state.modeller.find(m=>m.id===kod);
-  if(_savedMod) fbPush('modeller', _savedMod);
   closeModal('modal-model');
   renderKatalog();
 }
