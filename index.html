@@ -2179,7 +2179,7 @@ function saveModel(){
     // Kod değiştiyse siparişler ve fiyatları güncelle + Firebase'e yaz
     if(editingModelId !== kod) {
       state.siparisler.forEach(s=>{ if(s.modelId===editingModelId){ s.modelId=kod; fbPush('siparisler', s); } });
-      state.musteriler.forEach(m=>{ if(m.fiyatlar&&m.fiyatlar[editingModelId]){ m.fiyatlar[kod]=m.fiyatlar[editingModelId]; delete m.fiyatlar[editingModelId]; fbPush('musteriler', m); }});
+      // Fiyatlar kasa tipine göre çalışıyor, model kodu değişince müşteri fiyatlarına dokunma
     }
     // Kod değiştiyse Firebase'de eski kaydı sil
     if(editingModelId !== kod) fbRemove('modeller', editingModelId);
