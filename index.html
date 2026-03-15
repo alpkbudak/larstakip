@@ -605,7 +605,7 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
   <div class="siparis-list" id="siparis-list"></div>
 
   <button class="fab" onclick="openYeniSiparis()">＋</button>
-  <button class="fab" id="sip-secim-fab" style="bottom:90px;background:var(--s2);border:1px solid var(--border3);color:var(--muted);font-size:1rem;" onclick="sipSecimModu()" title="Toplu seç">☑️</button>
+  <button class="fab" id="sip-secim-fab" style="bottom:152px;background:var(--s2);border:1px solid var(--border3);color:var(--muted);font-size:1rem;width:44px;height:44px;" onclick="sipSecimModu()" title="Toplu seç">☑️</button>
 </div>
 
 <!-- ══════════════════════════════════
@@ -763,6 +763,19 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
     <div class="form-group">
       <label class="form-label">Notlar</label>
       <input type="text" class="form-input" id="sip-not" placeholder="Özel not...">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Fotoğraf</label>
+      <div id="sip-foto-preview" style="display:none;margin-bottom:.5rem;border-radius:10px;overflow:hidden;max-height:140px;border:1px solid var(--border3);">
+        <img id="sip-foto-img" src="" style="width:100%;height:140px;object-fit:cover;background:var(--s3);">
+        <button onclick="sipFotoSil()" style="position:absolute;top:4px;right:4px;background:#000a;color:#fff;border:none;border-radius:50%;width:24px;height:24px;cursor:pointer;font-size:.75rem;">✕</button>
+      </div>
+      <label style="display:flex;align-items:center;gap:.6rem;padding:.65rem 1rem;background:var(--s2);border:1px dashed var(--border3);border-radius:var(--radius-sm);cursor:pointer;" id="sip-foto-label">
+        <span style="font-size:1.1rem;">📷</span>
+        <span id="sip-foto-text" style="font-size:.8rem;color:var(--muted);">Fotoğraf ekle...</span>
+        <input type="file" id="sip-foto-input" accept="image/*" style="display:none;" onchange="handleSipFoto(this)">
+      </label>
+      <div id="sip-foto-yukluyor" style="display:none;font-size:.72rem;color:var(--muted);text-align:center;padding:.3rem;">⏳ Yükleniyor...</div>
     </div>
     <div style="display:flex;gap:.5rem;margin-top:.25rem;">
       <button class="btn btn-outline btn-full" onclick="closeModal('modal-siparis')">İptal</button>
@@ -1481,6 +1494,9 @@ function renderDashboard() {
     return `<div class="siparis-item ${durumClass} anim ${_sipSecimAktif?'secim-mod':''} ${secili?'secili-item':''}"
       onclick="${_sipSecimAktif ? `toggleSipSecim('${s.id}',this)` : `editSiparis('${s.id}')`}">
       ${_sipSecimAktif ? `<div class="secim-checkbox ${secili?'secili':''}" style="margin-right:.5rem;"></div>` : ''}
+      ${s.foto ? `<div style="width:56px;height:56px;border-radius:8px;overflow:hidden;flex-shrink:0;border:1px solid var(--border3);background:var(--s3);margin-right:.5rem;">
+        <img src="${s.foto}" style="width:100%;height:100%;object-fit:cover;" loading="lazy">
+      </div>` : ''}
       <div style="flex:1;min-width:0;">
       <div class="siparis-top">
         <span class="siparis-musteri">${s.musteriAd}</span>
@@ -1546,6 +1562,42 @@ function getMusteriFiyat(musteriId, modelId, tip) {
 // ════════════════════════════════════════════════
 // SİPARİŞ MODAL
 // ════════════════════════════════════════════════
+
+// ════════════════════════════════════════════════
+// SİPARİŞ FOTOĞRAF
+// ════════════════════════════════════════════════
+let pendingSipFotoUrl = null;
+
+async function handleSipFoto(input) {
+  if(!input.files||!input.files[0]) return;
+  const file = input.files[0];
+  const reader = new FileReader();
+  reader.onload = e => {
+    document.getElementById('sip-foto-preview').style.display='block';
+    document.getElementById('sip-foto-img').src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+  document.getElementById('sip-foto-yukluyor').style.display='block';
+  document.getElementById('sip-foto-text').textContent='Yükleniyor...';
+  try {
+    pendingSipFotoUrl = await uploadToCloudinary(file);
+    document.getElementById('sip-foto-text').textContent='✓ Fotoğraf yüklendi';
+    document.getElementById('sip-foto-yukluyor').style.display='none';
+    showToast('✓ Fotoğraf yüklendi!');
+  } catch(e) {
+    document.getElementById('sip-foto-yukluyor').style.display='none';
+    document.getElementById('sip-foto-text').textContent='⚠️ Yükleme başarısız';
+    pendingSipFotoUrl = null;
+  }
+}
+
+function sipFotoSil() {
+  pendingSipFotoUrl = null;
+  document.getElementById('sip-foto-preview').style.display='none';
+  document.getElementById('sip-foto-img').src='';
+  document.getElementById('sip-foto-text').textContent='Fotoğraf ekle...';
+  document.getElementById('sip-foto-input').value='';
+}
 function openYeniSiparis() {
   editingSiparisId = null;
   document.getElementById('siparis-modal-title').textContent = 'Yeni Sipariş';
@@ -1558,6 +1610,10 @@ function openYeniSiparis() {
   document.getElementById('sip-odeme').value = 'Bekliyor';
   document.getElementById('sip-delete-btn').style.display='none';
   document.getElementById('sip-model-preview').style.display='none';
+  pendingSipFotoUrl = null;
+  document.getElementById('sip-foto-preview').style.display='none';
+  document.getElementById('sip-foto-text').textContent='Fotoğraf ekle...';
+  document.getElementById('sip-foto-input').value='';
   fillMusteriSelect('sip-musteri','');
   fillModelSelect([]);
   openModal('modal-siparis');
@@ -1577,6 +1633,17 @@ function editSiparis(id) {
   document.getElementById('sip-not').value = s.not||'';
   document.getElementById('sip-odeme').value = s.odeme||'Bekliyor';
   document.getElementById('sip-delete-btn').style.display='block';
+  // Fotoğraf
+  pendingSipFotoUrl = s.foto || null;
+  if(s.foto) {
+    document.getElementById('sip-foto-preview').style.display='block';
+    document.getElementById('sip-foto-img').src = s.foto;
+    document.getElementById('sip-foto-text').textContent='Fotoğrafı değiştir...';
+  } else {
+    document.getElementById('sip-foto-preview').style.display='none';
+    document.getElementById('sip-foto-text').textContent='Fotoğraf ekle...';
+  }
+  document.getElementById('sip-foto-input').value='';
   fillMusteriSelect('sip-musteri', s.musteriId);
   const mus = state.musteriler.find(m=>m.id===s.musteriId);
   fillModelSelect(mus ? state.modeller : [], s.modelId);
@@ -1644,7 +1711,8 @@ function saveSiparis() {
       modelId, boy: document.getElementById('sip-boy').value,
       adet: Number(document.getElementById('sip-adet').value)||1,
       odeme: document.getElementById('sip-odeme').value,
-      not: document.getElementById('sip-not').value
+      not: document.getElementById('sip-not').value,
+      foto: pendingSipFotoUrl || state.siparisler[idx].foto || null
     };
     showToast('✓ Sipariş güncellendi');
   } else {
@@ -1656,7 +1724,8 @@ function saveSiparis() {
       modelId, boy: document.getElementById('sip-boy').value,
       adet: Number(document.getElementById('sip-adet').value)||1,
       odeme: document.getElementById('sip-odeme').value,
-      not: document.getElementById('sip-not').value
+      not: document.getElementById('sip-not').value,
+      foto: pendingSipFotoUrl || null
     });
     state.nextSiparisNo = Math.max(state.nextSiparisNo, no+1);
     showToast('✓ Sipariş eklendi');
