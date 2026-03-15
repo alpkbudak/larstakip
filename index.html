@@ -197,7 +197,7 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 .kpi-label{font-size:.62rem;color:var(--muted);margin-top:.25rem;line-height:1.3;}
 
 .siparis-list{padding:0 1.25rem;}
-.siparis-item{background:var(--s1);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:.9rem 1rem;margin-bottom:.5rem;cursor:pointer;transition:all .2s;position:relative;overflow:hidden;}
+.siparis-item{background:var(--s1);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:.9rem 1rem;margin-bottom:.5rem;cursor:pointer;transition:all .2s;position:relative;overflow:hidden;display:flex;align-items:flex-start;gap:.65rem;}
 .siparis-item::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;}
 .siparis-item.durum-teslim::before{background:var(--green);}
 .siparis-item.durum-kutu::before{background:var(--yellow);}
@@ -766,9 +766,9 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
     </div>
     <div class="form-group">
       <label class="form-label">Fotoğraf</label>
-      <div id="sip-foto-preview" style="display:none;margin-bottom:.5rem;border-radius:10px;overflow:hidden;max-height:140px;border:1px solid var(--border3);">
-        <img id="sip-foto-img" src="" style="width:100%;height:140px;object-fit:cover;background:var(--s3);">
-        <button onclick="sipFotoSil()" style="position:absolute;top:4px;right:4px;background:#000a;color:#fff;border:none;border-radius:50%;width:24px;height:24px;cursor:pointer;font-size:.75rem;">✕</button>
+      <div id="sip-foto-preview" style="display:none;margin-bottom:.5rem;border-radius:10px;overflow:hidden;border:1px solid var(--border3);position:relative;">
+        <img id="sip-foto-img" src="" style="width:100%;height:200px;object-fit:contain;background:var(--s3);">
+        <button onclick="sipFotoSil()" style="position:absolute;top:6px;right:6px;background:#000a;color:#fff;border:none;border-radius:50%;width:26px;height:26px;cursor:pointer;font-size:.8rem;line-height:1;">✕</button>
       </div>
       <label style="display:flex;align-items:center;gap:.6rem;padding:.65rem 1rem;background:var(--s2);border:1px dashed var(--border3);border-radius:var(--radius-sm);cursor:pointer;" id="sip-foto-label">
         <span style="font-size:1.1rem;">📷</span>
