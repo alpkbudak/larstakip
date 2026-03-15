@@ -34,8 +34,13 @@ window.fbSaveAll = async function(colName, items) {
   items.forEach(item => batch.set(db.collection(colName).doc(String(item.id)), item));
   try { await batch.commit(); } catch(e) { console.error('fbSaveAll error', e); }
 };
+// showLoadingOverlay erken tanım (fonksiyon aşağıda da var)
+window.showLoadingOverlay = function(show) {
+  const el = document.getElementById('loading-overlay');
+  if(el) el.style.display = show ? 'flex' : 'none';
+};
 window.loadFromFirebase = async function() {
-  showLoadingOverlay(true);
+  window.showLoadingOverlay(true);
   try {
     const [sipSnap, musSnap, modSnap] = await Promise.all([
       db.collection('siparisler').get(),
@@ -2435,8 +2440,6 @@ window.seedData = seedData;
 
 // Önce yerel veriyi göster
 seedData();
-renderDashboard();
-
 // Firebase'i başlat
 function waitForFirebase() {
   if (typeof window.loadFromFirebase === 'function') {
