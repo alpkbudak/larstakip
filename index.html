@@ -1530,10 +1530,12 @@ const SABIT_MALIYET = {
 
 
 function getKasaTipi(modelId) {
-  // Model id'den kasa tipini çıkar (KASA_KISA tersine çevir)
-  const KISA_KASA = {KL:'Klasik',KB:'Kibrit',KS:'Kasalı',KM:'Kalemli',TS:'Taşlı',AJ:'Ajda',BR:'Burma',OZ:'Özel Sipariş'};
   if(!modelId) return null;
-  // Model kodu: UURKK14X formatında, 3-4. karakter kasa kısaltması
+  // Önce model objesinden kasa al (yeni sistem: LRS001 gibi kodlar)
+  const model = state.modeller.find(m=>m.id===modelId);
+  if(model && model.kasa) return model.kasa;
+  // Eski format fallback: LRKL145 gibi kodlar için
+  const KISA_KASA = {KL:'Klasik',KB:'Kibrit',KS:'Kasalı',KM:'Kalemli',TS:'Taşlı',AJ:'Ajda',BR:'Burma',OZ:'Özel Sipariş'};
   const kasaKisa = modelId.substring(2,4);
   return KISA_KASA[kasaKisa] || null;
 }
