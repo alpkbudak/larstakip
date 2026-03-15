@@ -352,6 +352,19 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 .bugun-wrap{background:var(--s1);border:1px solid var(--border2);border-radius:14px;padding:1rem;margin:0 1.25rem .75rem;}
 .bugun-satir{display:flex;align-items:center;gap:.5rem;padding:.35rem 0;border-bottom:1px solid var(--border);}
 .bugun-satir:last-child{border-bottom:none;}
+
+/* ═══ TOPLU SEÇİM ═══ */
+.secim-toolbar{position:sticky;top:0;z-index:100;background:var(--s1);border-bottom:1px solid var(--border2);padding:.6rem 1.25rem;display:flex;align-items:center;gap:.5rem;display:none;}
+.secim-toolbar.aktif{display:flex;}
+.secim-checkbox{width:20px;height:20px;border-radius:6px;border:2px solid var(--border3);background:var(--s2);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s;}
+.secim-checkbox.secili{background:var(--gold);border-color:var(--gold);}
+.secim-checkbox.secili::after{content:'✓';color:#fff;font-size:.75rem;font-weight:700;}
+.siparis-item.secim-mod{padding-left:.5rem;}
+.siparis-item.secili-item{border-color:var(--gold);background:var(--gold)11;}
+.katalog-item.secim-mod{padding-left:.5rem;}
+.katalog-item.secili-item{border-color:var(--gold);background:var(--gold)11;}
+.toplu-sil-btn{background:var(--red-bg);color:var(--red);border:1px solid var(--red)44;border-radius:8px;padding:.4rem .9rem;font-size:.78rem;font-weight:700;cursor:pointer;}
+.toplu-iptal-btn{background:var(--s2);color:var(--muted);border:1px solid var(--border3);border-radius:8px;padding:.4rem .9rem;font-size:.78rem;font-weight:600;cursor:pointer;}
 </style>
 </head>
 <body>
@@ -577,9 +590,17 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
   <!-- Aktif filtre etiketi satırı -->
   <div class="filter-active-bar" id="filter-active-bar" style="display:none;"></div>
 
+  <!-- Toplu Seçim Toolbar -->
+  <div class="secim-toolbar" id="sip-secim-toolbar">
+    <div id="sip-secim-sayi" style="font-size:.78rem;font-weight:700;color:var(--gold);flex:1;">0 seçili</div>
+    <button class="toplu-sil-btn" onclick="topluSiparisSil()">🗑 Seçilenleri Sil</button>
+    <button class="toplu-iptal-btn" onclick="sipSecimIptal()">İptal</button>
+  </div>
+
   <div class="siparis-list" id="siparis-list"></div>
 
   <button class="fab" onclick="openYeniSiparis()">＋</button>
+  <button class="fab" id="sip-secim-fab" style="bottom:90px;background:var(--s2);border:1px solid var(--border3);color:var(--muted);font-size:1rem;" onclick="sipSecimModu()" title="Toplu seç">☑️</button>
 </div>
 
 <!-- ══════════════════════════════════
@@ -606,9 +627,18 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
       <div class="page-title">📋 Model Kataloğu</div>
       <div class="page-subtitle" id="kat-subtitle"></div>
     </div>
+    <div style="display:flex;gap:.5rem;align-items:center;">
+    <button class="btn btn-outline btn-sm" id="kat-secim-btn" onclick="katSecimModu()" title="Toplu seç">☑️</button>
     <button class="btn btn-gold btn-sm" onclick="openYeniModel()">+ Ekle</button>
   </div>
+  </div>
   <div class="search-bar"><input type="text" placeholder="Model ara..." oninput="filterKatalog(this.value)"></div>
+  <!-- Toplu Seçim Toolbar -->
+  <div class="secim-toolbar" id="kat-secim-toolbar">
+    <div id="kat-secim-sayi" style="font-size:.78rem;font-weight:700;color:var(--gold);flex:1;">0 seçili</div>
+    <button class="toplu-sil-btn" onclick="topluModelSil()">🗑 Seçilenleri Sil</button>
+    <button class="toplu-iptal-btn" onclick="katSecimIptal()">İptal</button>
+  </div>
   <div style="padding:0 1.25rem;" id="katalog-list"></div>
 </div>
 
@@ -1442,7 +1472,11 @@ function renderDashboard() {
     const durumBadge = s.durum==='Teslim Edildi'?'badge-green':s.durum==='Kutuda'?'badge-yellow':'badge-red';
     const kar = getMusteriKar(s.musteriId, s.modelId);
     const karText = kar !== null ? `<span style="color:var(--green)">${(kar*Number(s.adet||0)).toFixed(2)} ct/gr kâr</span>` : `<span style="color:var(--muted);font-size:.7rem;">fiyat girilmedi</span>`;
-    return `<div class="siparis-item ${durumClass} anim" onclick="editSiparis('${s.id}')">
+    const secili = _sipSecimSet.has(s.id);
+    return `<div class="siparis-item ${durumClass} anim ${_sipSecimAktif?'secim-mod':''} ${secili?'secili-item':''}"
+      onclick="${_sipSecimAktif ? `toggleSipSecim('${s.id}',this)` : `editSiparis('${s.id}')`}">
+      ${_sipSecimAktif ? `<div class="secim-checkbox ${secili?'secili':''}" style="margin-right:.5rem;"></div>` : ''}
+      <div style="flex:1;min-width:0;">
       <div class="siparis-top">
         <span class="siparis-musteri">${s.musteriAd}</span>
         <span class="siparis-no">#${s.no}</span>
@@ -1459,6 +1493,7 @@ function renderDashboard() {
         <div style="font-size:.72rem;">${karText}</div>
       </div>
       ${s.not?`<div style="font-size:.7rem;color:var(--muted);margin-top:.3rem;padding-top:.3rem;border-top:1px solid var(--border)">📝 ${s.not}</div>`:''}
+      </div>
     </div>`;
   }).join('');
 }
@@ -1934,6 +1969,86 @@ function saveFiyatlar() {
 }
 
 
+
+// ════════════════════════════════════════════════
+// TOPLU SEÇİM — SİPARİŞ
+// ════════════════════════════════════════════════
+let _sipSecimAktif = false;
+let _sipSecimSet = new Set();
+
+function sipSecimModu() {
+  _sipSecimAktif = true;
+  _sipSecimSet.clear();
+  document.getElementById('sip-secim-toolbar').classList.add('aktif');
+  document.getElementById('sip-secim-fab').style.display = 'none';
+  renderDashboard();
+}
+function sipSecimIptal() {
+  _sipSecimAktif = false;
+  _sipSecimSet.clear();
+  document.getElementById('sip-secim-toolbar').classList.remove('aktif');
+  document.getElementById('sip-secim-fab').style.display = '';
+  renderDashboard();
+}
+function toggleSipSecim(id, el) {
+  if(_sipSecimSet.has(id)) _sipSecimSet.delete(id);
+  else _sipSecimSet.add(id);
+  document.getElementById('sip-secim-sayi').textContent = _sipSecimSet.size + ' seçili';
+  renderDashboard();
+}
+async function topluSiparisSil() {
+  if(_sipSecimSet.size===0){showToast('⚠️ Hiç sipariş seçilmedi');return;}
+  if(!confirm(_sipSecimSet.size + ' siparişi silmek istediğinize emin misiniz?')) return;
+  const ids = [..._sipSecimSet];
+  state.siparisler = state.siparisler.filter(s=>!ids.includes(s.id));
+  ids.forEach(id=>fbRemove('siparisler', id));
+  saveState();
+  sipSecimIptal();
+  showToast('🗑 ' + ids.length + ' sipariş silindi');
+}
+
+// ════════════════════════════════════════════════
+// TOPLU SEÇİM — MODEL
+// ════════════════════════════════════════════════
+let _katSecimAktif = false;
+let _katSecimSet = new Set();
+
+function katSecimModu() {
+  _katSecimAktif = true;
+  _katSecimSet.clear();
+  document.getElementById('kat-secim-toolbar').classList.add('aktif');
+  renderKatalog();
+}
+function katSecimIptal() {
+  _katSecimAktif = false;
+  _katSecimSet.clear();
+  document.getElementById('kat-secim-toolbar').classList.remove('aktif');
+  renderKatalog();
+}
+function toggleKatSecim(id, el) {
+  if(_katSecimSet.has(id)) _katSecimSet.delete(id);
+  else _katSecimSet.add(id);
+  document.getElementById('kat-secim-sayi').textContent = _katSecimSet.size + ' seçili';
+  renderKatalog();
+}
+async function topluModelSil() {
+  if(_katSecimSet.size===0){showToast('⚠️ Hiç model seçilmedi');return;}
+  const ids = [..._katSecimSet];
+  // Siparişte kullanılan modelleri filtrele
+  const kullanilanlar = ids.filter(id=>state.siparisler.some(s=>s.modelId===id));
+  if(kullanilanlar.length>0){
+    showToast('⚠️ ' + kullanilanlar.length + ' model siparişlerde kullanılıyor, bunlar atlandı');
+  }
+  const silinecek = ids.filter(id=>!state.siparisler.some(s=>s.modelId===id));
+  if(silinecek.length===0){showToast('⚠️ Seçili modeller siparişlerde kullanılıyor');return;}
+  if(!confirm(silinecek.length + ' modeli silmek istediğinize emin misiniz?')) return;
+  state.modeller = state.modeller.filter(m=>!silinecek.includes(m.id));
+  silinecek.forEach(id=>fbRemove('modeller', id));
+  saveState();
+  katSecimIptal();
+  showToast('🗑 ' + silinecek.length + ' model silindi');
+}
+
 // ════════════════════════════════════════════════
 // BORÇ & ÖDEME
 // ════════════════════════════════════════════════
@@ -2016,8 +2131,11 @@ function renderKatalog(query='') {
   let list = state.modeller.sort((a,b)=>a.id.localeCompare(b.id));
   if(query) list = list.filter(m=>m.id.toLowerCase().includes(query.toLowerCase())||m.uretici.toLowerCase().includes(query.toLowerCase()));
   document.getElementById('kat-subtitle').textContent = `${state.modeller.length} model`;
-  document.getElementById('katalog-list').innerHTML = list.map(m=>`
-    <div class="katalog-item anim" onclick="openModelDetay('${m.id}')" style="cursor:pointer;">
+  document.getElementById('katalog-list').innerHTML = list.map(m=>{
+    const secili = _katSecimSet.has(m.id);
+    return `<div class="katalog-item anim ${_katSecimAktif?'secim-mod':''} ${secili?'secili-item':''}"
+      onclick="${_katSecimAktif ? `toggleKatSecim('${m.id}',this)` : `openModelDetay('${m.id}')`}" style="cursor:pointer;">
+      ${_katSecimAktif ? `<div class="secim-checkbox ${secili?'secili':''}" style="margin-right:.25rem;"></div>` : ''}
       ${m.foto ? `<div style="width:64px;height:64px;border-radius:10px;overflow:hidden;flex-shrink:0;border:1px solid var(--border3);background:var(--s3);display:flex;align-items:center;justify-content:center;">
         <img src="${m.foto}" style="width:100%;height:100%;object-fit:contain;background:var(--s3);padding:2px;" loading="lazy">
       </div>` : `<div style="width:64px;height:64px;border-radius:10px;background:var(--s2);border:1px dashed var(--border3);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:1.5rem;color:var(--muted);">💍</div>`}
@@ -2030,7 +2148,8 @@ function renderKatalog(query='') {
         <span class="badge badge-gold">${m.ayar}</span>
         ${m.foto?'<span style="font-size:.6rem;color:var(--green);">📷 foto var</span>':'<span style="font-size:.6rem;color:var(--muted);">foto yok</span>'}
       </div>
-    </div>`).join('');
+    </div>`;
+  }).join('');
 }
 
 function filterKatalog(q){renderKatalog(q);}
