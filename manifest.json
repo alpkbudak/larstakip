@@ -3,7 +3,6 @@
   "short_name": "Alyans",
   "description": "Sipariş ve müşteri yönetim uygulaması",
   "start_url": "/repo-adi/",
-  "scope": "/larstakip/",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#1a1a2e",
