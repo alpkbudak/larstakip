@@ -1,8 +1,7 @@
-const CACHE_NAME = 'alyans-v1';
 const ASSETS = [
-  '/',
-  '/index.html',
-  '/manifest.json'
+  '/larstakip/',
+  '/larstakip/index.html',
+  '/larstakip/manifest.json'
 ];
 
 self.addEventListener('install', e => {
