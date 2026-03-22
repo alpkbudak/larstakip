@@ -43,7 +43,14 @@ window.fbSaveAll = async function(colName, items) {
 // showLoadingOverlay erken tanım (fonksiyon aşağıda da var)
 window.showLoadingOverlay = function(show) {
   const el = document.getElementById('loading-overlay');
-  if(el) el.style.display = show ? 'flex' : 'none';
+  if(!el) return;
+  if(show) {
+    el.style.opacity = '1';
+    el.style.display = 'flex';
+  } else {
+    el.style.opacity = '0';
+    setTimeout(() => { el.style.display = 'none'; }, 500);
+  }
 };
 window.loadFromFirebase = async function() {
   window.showLoadingOverlay(true);
@@ -376,18 +383,77 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 .katalog-item.secili-item{border-color:var(--gold);background:var(--gold)11;}
 .toplu-sil-btn{background:var(--red-bg);color:var(--red);border:1px solid var(--red)44;border-radius:8px;padding:.4rem .9rem;font-size:.78rem;font-weight:700;cursor:pointer;}
 .toplu-iptal-btn{background:var(--s2);color:var(--muted);border:1px solid var(--border3);border-radius:8px;padding:.4rem .9rem;font-size:.78rem;font-weight:600;cursor:pointer;}
+
+/* ═══ MOBİL POLISH ═══ */
+/* Bottom nav daha belirgin */
+.bottom-nav{
+  background:rgba(13,10,17,.95) !important;
+  backdrop-filter:blur(20px);
+  -webkit-backdrop-filter:blur(20px);
+  border-top:1px solid #9b6fd422 !important;
+  box-shadow:0 -4px 24px rgba(0,0,0,.4);
+}
+.nav-item{min-height:48px;padding:.3rem .25rem !important;}
+.nav-item.active .nav-icon{transform:scale(1.15);filter:drop-shadow(0 0 6px #9b6fd480);}
+.nav-icon{transition:transform .2s,filter .2s;}
+.nav-label{font-size:.58rem !important;letter-spacing:.06em;}
+
+/* FAB daha büyük */
+.fab{width:56px !important;height:56px !important;font-size:1.6rem !important;}
+
+/* Butonlar touch-friendly */
+.btn{min-height:44px;padding:.8rem 1.25rem !important;}
+.btn-sm{min-height:36px;}
+.btn-gold{box-shadow:0 4px 16px #9b6fd440;}
+
+/* Form inputları daha rahat */
+.form-input,.form-select{
+  min-height:46px !important;
+  padding:.8rem 1rem !important;
+  font-size:.95rem !important;
+}
+
+/* Sipariş kartları daha rahat tıklanır */
+.siparis-item{min-height:72px;padding:1rem !important;}
+.musteri-card{min-height:64px;}
+.katalog-item{min-height:56px;}
+
+/* Active state feedback */
+.siparis-item:active,.musteri-card:active,.katalog-item:active{
+  transform:scale(.98);
+  transition:transform .1s;
+}
+.btn:active{transform:scale(.96);}
+
+/* Filter chips daha büyük */
+.fchip{padding:.4rem .85rem !important;font-size:.73rem !important;min-height:34px;}
+.filter-chip{min-height:32px;}
+
+/* Toast pozisyon */
+.toast{bottom:calc(80px + env(safe-area-inset-bottom) + 8px) !important;top:auto !important;}
 </style>
 </head>
 <body>
 
 <div class="bg-orbs"></div>
-<div id="loading-overlay" style="position:fixed;inset:0;background:var(--bg);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1rem;">
-  <div style="font-size:2.5rem;">💍</div>
-  <div style="font-family:Montserrat,sans-serif;font-size:.9rem;color:#6a5e80;">Veriler yukleniyor...</div>
-  <div style="width:120px;height:3px;background:#1a1624;border-radius:2px;overflow:hidden;">
-    <div style="height:100%;background:#9b6fd4;border-radius:2px;animation:loadBar 1.5s ease-in-out infinite;"></div>
+<div id="loading-overlay" style="position:fixed;inset:0;background:#0c0a0f;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.25rem;transition:opacity .5s ease;">
+  <div style="position:relative;width:72px;height:72px;display:flex;align-items:center;justify-content:center;">
+    <div style="position:absolute;inset:0;border-radius:50%;border:2px solid #9b6fd430;animation:splashRing 2s linear infinite;"></div>
+    <div style="position:absolute;inset:0;border-radius:50%;border:2px solid transparent;border-top-color:#9b6fd4;animation:splashSpin 1s linear infinite;"></div>
+    <div style="font-size:2rem;line-height:1;">💍</div>
+  </div>
+  <div>
+    <div style="font-family:Montserrat,sans-serif;font-size:1.1rem;font-weight:700;color:#e8e0f0;letter-spacing:.05em;text-align:center;">Alyans <span style="color:#9b6fd4;">Takip</span></div>
+    <div style="font-family:Montserrat,sans-serif;font-size:.7rem;color:#6a5e80;text-align:center;margin-top:.3rem;letter-spacing:.1em;text-transform:uppercase;">Veriler yükleniyor...</div>
+  </div>
+  <div style="width:100px;height:2px;background:#1a1624;border-radius:2px;overflow:hidden;">
+    <div style="height:100%;background:linear-gradient(90deg,#6a3fa8,#9b6fd4);border-radius:2px;animation:loadBar 1.8s ease-in-out infinite;"></div>
   </div>
 </div>
+<style>
+@keyframes splashSpin{to{transform:rotate(360deg);}}
+@keyframes splashRing{0%,100%{opacity:.3;}50%{opacity:.8;}}
+</style>
 <style>@keyframes loadBar{0%{width:0;margin-left:0;}50%{width:100%;margin-left:0;}100%{width:0;margin-left:100%;}}
 /* ═══ BORÇ / ÖDEME ═══ */
 .borc-kart{background:linear-gradient(135deg,var(--red-bg),#1a0a0f);border:1px solid var(--red)33;border-radius:12px;padding:1rem;margin-bottom:.75rem;}
