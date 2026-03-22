@@ -2527,5 +2527,12 @@ function waitForFirebase() {
 }
 waitForFirebase();
 </script>
+  <script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/larstakip/service-worker.js');
+    });
+  }
+</script>
 </body>
 </html>
