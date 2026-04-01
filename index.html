@@ -1157,6 +1157,7 @@ function modelKodu(uretici, ayar, kasa, kalinlik) {
 // BAŞLANGIÇ VERİLERİ (eğer state boşsa)
 // ════════════════════════════════════════════════
 function seedData() {
+  return;
   // Versiyon kontrolü: eski uzun kodlar (tire içerenler) varsa sıfırla
   const eskiKod = state.modeller.length > 0 && state.modeller[0].id && state.modeller[0].id.includes('-');
   if (state.modeller.length > 0 && state.musteriler.length >= 18 && !eskiKod) return;
