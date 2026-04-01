@@ -808,10 +808,31 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
         <div><div style="font-size:.6rem;color:var(--muted);">Kâr (ct/gr)</div><div id="sip-kar-preview" style="font-family:'Montserrat',sans-serif;font-size:1rem;font-weight:700;color:var(--green);">—</div></div>
       </div>
     </div>
-    <div class="form-row">
+    <div class="form-row-3">
       <div class="form-group">
         <label class="form-label">Boy/Ölçüler</label>
         <input type="text" class="form-input" id="sip-boy" placeholder="ör: 14-16-18">
+      </div>
+      <div class="form-group">
+        <label class="form-label">MM</label>
+        <select class="form-select" id="sip-mm">
+          <option value="">—</option>
+          <option>2mm</option>
+          <option>2.5mm</option>
+          <option>3mm</option>
+          <option>3.5mm</option>
+          <option>4mm</option>
+          <option>4.5mm</option>
+          <option>5mm</option>
+          <option>5.5mm</option>
+          <option>6mm</option>
+          <option>6.5mm</option>
+          <option>7mm</option>
+          <option>7.5mm</option>
+          <option>8mm</option>
+          <option>9mm</option>
+          <option>10mm</option>
+        </select>
       </div>
       <div class="form-group">
         <label class="form-label">Adet</label>
@@ -1577,7 +1598,7 @@ function renderDashboard() {
       </div>
       <div class="siparis-meta">
         <span class="siparis-model">${s.modelId}</span>
-        <span class="siparis-detail">· ${s.adet} adet · ${s.boy||'—'}</span>
+        <span class="siparis-detail">· ${s.adet} adet · ${s.boy||'—'}${s.mm?' · '+s.mm:''}</span>
       </div>
       <div class="siparis-bottom">
         <div style="display:flex;gap:.4rem;align-items:center;">
@@ -1680,6 +1701,7 @@ function openYeniSiparis() {
   document.getElementById('sip-tarih').value = new Date().toISOString().slice(0,10);
   document.getElementById('sip-durum').value = 'Üretimde';
   document.getElementById('sip-boy').value = '';
+  document.getElementById('sip-mm').value = '';
   document.getElementById('sip-adet').value = '';
   document.getElementById('sip-not').value = '';
   document.getElementById('sip-odeme').value = 'Bekliyor';
@@ -1704,6 +1726,7 @@ function editSiparis(id) {
   if(tarihParts.length===3) document.getElementById('sip-tarih').value = `${tarihParts[2]}-${tarihParts[1]}-${tarihParts[0]}`;
   document.getElementById('sip-durum').value = s.durum;
   document.getElementById('sip-boy').value = s.boy||'';
+  document.getElementById('sip-mm').value = s.mm||'';
   document.getElementById('sip-adet').value = s.adet||'';
   document.getElementById('sip-not').value = s.not||'';
   document.getElementById('sip-odeme').value = s.odeme||'Bekliyor';
@@ -1784,6 +1807,7 @@ function saveSiparis() {
       musteriId: musId, musteriAd: mus.ad,
       durum: document.getElementById('sip-durum').value,
       modelId, boy: document.getElementById('sip-boy').value,
+      mm: document.getElementById('sip-mm').value,
       adet: Number(document.getElementById('sip-adet').value)||1,
       odeme: document.getElementById('sip-odeme').value,
       not: document.getElementById('sip-not').value,
@@ -1797,6 +1821,7 @@ function saveSiparis() {
       musteriId: musId, musteriAd: mus.ad,
       durum: document.getElementById('sip-durum').value,
       modelId, boy: document.getElementById('sip-boy').value,
+      mm: document.getElementById('sip-mm').value,
       adet: Number(document.getElementById('sip-adet').value)||1,
       odeme: document.getElementById('sip-odeme').value,
       not: document.getElementById('sip-not').value,
