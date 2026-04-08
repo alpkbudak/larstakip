@@ -1831,7 +1831,12 @@ function saveSiparis() {
     showToast('✓ Sipariş eklendi');
   }
   saveState();
-  fbPush('siparisler', state.siparisler[state.siparisler.length-1]);
+  if(editingSiparisId) {
+    const updatedSip = state.siparisler.find(s=>s.id===editingSiparisId);
+    fbPush('siparisler', updatedSip);
+  } else {
+    fbPush('siparisler', state.siparisler[state.siparisler.length-1]);
+  }
   closeModal('modal-siparis');
   renderDashboard();
 }
