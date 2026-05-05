@@ -1396,11 +1396,30 @@ function renderHome() {
   });
   const haftaSipAdet = haftaSip.reduce((a,s)=>a+Number(s.adet||0),0);
 
-  const haftaOdendi = haftaSip.filter(s=>s.odeme==='Ödendi');
-  const haftaOdemeKar = haftaOdendi.reduce((a,s)=>{
+  // Sipariş bazlı ödemeler (odeme=Ödendi, bu hafta tarihli siparişler)
+  const haftaSipOdendi = haftaSip.filter(s=>s.odeme==='Ödendi');
+  const haftaSipOdemeKar = haftaSipOdendi.reduce((a,s)=>{
     const k = getMusteriKar(s.musteriId, s.modelId);
     return a + (k !== null ? k * Number(s.adet||0) : 0);
   }, 0);
+
+  // Manuel ödemeler: tüm müşterilerin hareketleri içinde bu hafta tarihli tip=odeme kayıtları
+  let manuelOdemeToplam = 0;
+  let manuelOdemeSayi = 0;
+  state.musteriler.forEach(m=>{
+    (m.hareketler||[]).forEach(h=>{
+      if(h.tip !== 'odeme') return;
+      // ISO tarih: 2025-01-15
+      const t = h.tarih ? new Date(h.tarih) : null;
+      if(t && t >= haftaBas && t <= haftaBit) {
+        manuelOdemeToplam += Number(h.tutar||0);
+        manuelOdemeSayi++;
+      }
+    });
+  });
+
+  const toplamOdemeKar = haftaSipOdemeKar + manuelOdemeToplam;
+  const toplamOdemeSayi = haftaSipOdendi.length + manuelOdemeSayi;
 
   // Haftanın gün ilerlemesi (Pazartesi=0 ... Pazar=6)
   const gunIlerleme = Math.min(haftaGunu === 0 ? 6 : haftaGunu - 1, 6);
@@ -1412,8 +1431,8 @@ function renderHome() {
   document.getElementById('haftalik-donem-label').textContent = `${haftaBas_fmt} – ${haftaBit_fmt} haftası`;
   document.getElementById('haftalik-siparis-sayi').textContent = haftaSip.length;
   document.getElementById('haftalik-siparis-adet').textContent = haftaSipAdet + ' adet';
-  document.getElementById('haftalik-odeme-val').textContent = haftaOdemeKar > 0 ? haftaOdemeKar.toFixed(2) : '—';
-  document.getElementById('haftalik-odeme-sayi').textContent = haftaOdendi.length + ' sipariş ödendi';
+  document.getElementById('haftalik-odeme-val').textContent = toplamOdemeKar > 0 ? toplamOdemeKar.toFixed(2) : '—';
+  document.getElementById('haftalik-odeme-sayi').textContent = toplamOdemeSayi > 0 ? toplamOdemeSayi + ' tahsilat' : 'henüz yok';
   document.getElementById('haftalik-bar-fill').style.width = haftaIlerlemePct + '%';
 
   // Bugünün siparişleri
@@ -2342,6 +2361,7 @@ function saveOdeme() {
   fbPush('musteriler', mus);
   closeModal('modal-odeme');
   openMusteriDetay(musId);
+  renderHome();
   showToast('✓ Ödeme kaydedildi');
 }
 
