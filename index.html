@@ -371,6 +371,18 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 .bugun-satir{display:flex;align-items:center;gap:.5rem;padding:.35rem 0;border-bottom:1px solid var(--border);}
 .bugun-satir:last-child{border-bottom:none;}
 
+/* ═══ HAFTALIK TUR KARTI ═══ */
+.haftalik-kart{background:linear-gradient(135deg,#1a0f2e,#120a20);border:1px solid #9b6fd433;border-radius:14px;padding:1rem;margin:0 1.25rem .75rem;position:relative;overflow:hidden;}
+.haftalik-kart::before{content:'🗓';position:absolute;right:1rem;top:50%;transform:translateY(-50%);font-size:3rem;opacity:.08;}
+.haftalik-baslik{font-size:.62rem;font-weight:700;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-bottom:.75rem;}
+.haftalik-grid{display:grid;grid-template-columns:1fr 1fr;gap:.6rem;}
+.haftalik-kutu{background:#ffffff08;border:1px solid #9b6fd422;border-radius:10px;padding:.65rem .75rem;}
+.haftalik-val{font-family:'Montserrat',sans-serif;font-size:1.4rem;font-weight:700;color:var(--gold);line-height:1;}
+.haftalik-label{font-size:.6rem;color:var(--muted);margin-top:.2rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em;}
+.haftalik-sub{font-size:.62rem;color:var(--muted2);margin-top:.15rem;}
+.haftalik-bar{height:3px;background:#ffffff0a;border-radius:2px;margin-top:.6rem;overflow:hidden;}
+.haftalik-bar-fill{height:100%;border-radius:2px;background:linear-gradient(90deg,#6a3fa8,#9b6fd4);transition:width .6s;}
+
 /* ═══ TOPLU SEÇİM ═══ */
 .secim-toolbar{position:sticky;top:0;z-index:100;background:var(--s1);border-bottom:1px solid var(--border2);padding:.6rem 1.25rem;display:flex;align-items:center;gap:.5rem;display:none;}
 .secim-toolbar.aktif{display:flex;}
@@ -513,6 +525,27 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
   </div>
 
   <div style="overflow-y:auto;padding-bottom:80px;">
+
+    <!-- Haftalık Tur Özeti -->
+    <div class="home-section">
+      <div class="home-section-title"><span>🚗 Bu Haftaki Turum</span></div>
+    </div>
+    <div class="haftalik-kart">
+      <div class="haftalik-baslik" id="haftalik-donem-label">Yükleniyor...</div>
+      <div class="haftalik-grid">
+        <div class="haftalik-kutu">
+          <div class="haftalik-val" id="haftalik-siparis-sayi">—</div>
+          <div class="haftalik-label">Sipariş Alındı</div>
+          <div class="haftalik-sub" id="haftalik-siparis-adet">— adet</div>
+        </div>
+        <div class="haftalik-kutu">
+          <div class="haftalik-val" id="haftalik-odeme-val" style="color:var(--green);">—</div>
+          <div class="haftalik-label">Tahsilat (ct/gr)</div>
+          <div class="haftalik-sub" id="haftalik-odeme-sayi">— sipariş ödendi</div>
+        </div>
+      </div>
+      <div class="haftalik-bar"><div class="haftalik-bar-fill" id="haftalik-bar-fill" style="width:0%"></div></div>
+    </div>
 
     <!-- Bugünün özeti -->
     <div class="home-section">
@@ -1345,6 +1378,43 @@ function renderHome() {
   document.getElementById('home-bugun-sip').textContent = 'bugün ' + bugunSip.length + ' sipariş';
   document.getElementById('home-toplam-borc').textContent = toplamBorc>0?toplamBorc.toFixed(1):'—';
   document.getElementById('home-borc-musteri').textContent = borcluSayi + ' müşteride borç var';
+
+  // ─ Haftalık tur hesabı ─
+  const simdiHafta = new Date();
+  const haftaGunu = simdiHafta.getDay(); // 0=Pazar, 1=Pzt...
+  const pztFark = haftaGunu === 0 ? -6 : 1 - haftaGunu; // Pazartesiye mesafe
+  const haftaBas = new Date(simdiHafta);
+  haftaBas.setDate(simdiHafta.getDate() + pztFark);
+  haftaBas.setHours(0,0,0,0);
+  const haftaBit = new Date(haftaBas);
+  haftaBit.setDate(haftaBas.getDate() + 6);
+  haftaBit.setHours(23,59,59,999);
+
+  const haftaSip = sip.filter(s=>{
+    const t = parseTarih(s.tarih);
+    return t && t >= haftaBas && t <= haftaBit;
+  });
+  const haftaSipAdet = haftaSip.reduce((a,s)=>a+Number(s.adet||0),0);
+
+  const haftaOdendi = haftaSip.filter(s=>s.odeme==='Ödendi');
+  const haftaOdemeKar = haftaOdendi.reduce((a,s)=>{
+    const k = getMusteriKar(s.musteriId, s.modelId);
+    return a + (k !== null ? k * Number(s.adet||0) : 0);
+  }, 0);
+
+  // Haftanın gün ilerlemesi (Pazartesi=0 ... Pazar=6)
+  const gunIlerleme = Math.min(haftaGunu === 0 ? 6 : haftaGunu - 1, 6);
+  const haftaIlerlemePct = Math.round((gunIlerleme / 6) * 100);
+
+  const haftaBas_fmt = `${String(haftaBas.getDate()).padStart(2,'0')}.${String(haftaBas.getMonth()+1).padStart(2,'0')}`;
+  const haftaBit_fmt = `${String(haftaBit.getDate()).padStart(2,'0')}.${String(haftaBit.getMonth()+1).padStart(2,'0')}`;
+
+  document.getElementById('haftalik-donem-label').textContent = `${haftaBas_fmt} – ${haftaBit_fmt} haftası`;
+  document.getElementById('haftalik-siparis-sayi').textContent = haftaSip.length;
+  document.getElementById('haftalik-siparis-adet').textContent = haftaSipAdet + ' adet';
+  document.getElementById('haftalik-odeme-val').textContent = haftaOdemeKar > 0 ? haftaOdemeKar.toFixed(2) : '—';
+  document.getElementById('haftalik-odeme-sayi').textContent = haftaOdendi.length + ' sipariş ödendi';
+  document.getElementById('haftalik-bar-fill').style.width = haftaIlerlemePct + '%';
 
   // Bugünün siparişleri
   const bugunWrap = document.getElementById('home-bugun-wrap');
